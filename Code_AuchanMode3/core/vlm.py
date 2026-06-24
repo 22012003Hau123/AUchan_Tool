@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 import time
 
 import requests
@@ -9,6 +10,10 @@ from .utils import encode_image_base64
 logger = logging.getLogger(__name__)
 
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
+
+_VLM_LOCK = threading.Lock()
+_VLM_LAST_CALL = 0.0
+_VLM_MIN_INTERVAL = 3.0  # giây giữa các lần gọi
 
 _VLM_VERIFY_CLASSES = ("pack", "logo", "product_origin", "price_per_piece", "promo_fidelite")
 
@@ -70,6 +75,13 @@ def verify_missing_elements_via_vlm(element, target_block, cls_name):
     }
 
     logger.info("[VLM-VERIFY] class='%s' | 1 crop + 1 full block", cls_name)
+
+    global _VLM_LAST_CALL
+    with _VLM_LOCK:
+        elapsed = time.time() - _VLM_LAST_CALL
+        if elapsed < _VLM_MIN_INTERVAL:
+            time.sleep(_VLM_MIN_INTERVAL - elapsed)
+        _VLM_LAST_CALL = time.time()
 
     for attempt in range(3):
         try:
