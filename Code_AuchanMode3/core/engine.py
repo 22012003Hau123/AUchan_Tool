@@ -23,7 +23,6 @@ import time
 import uuid
 
 import fitz
-import numpy as np
 
 from .annotation import annotate_pdf, format_block_for_json, get_fini_annotations
 from .blocks import extract_all_blocks
@@ -162,16 +161,6 @@ def run_comparison(path_a, path_b, model, zoom=2.0, conf_thresh=0.25, iou_thresh
 
     fini_pdv_pages = sorted({b["page_idx"] + 1 for b in blocks_a if b.get("pdv_code")})
 
-    def _render_pages(doc, zoom_factor):
-        imgs = {}
-        for i in range(doc.page_count):
-            pix = doc[i].get_pixmap(matrix=fitz.Matrix(zoom_factor, zoom_factor), colorspace=fitz.csRGB)
-            imgs[i] = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.h, pix.w, pix.n)
-        return imgs
-
-    page_imgs_a = _render_pages(doc_a, zoom)
-    page_imgs_b = _render_pages(doc_b, zoom)
-
     page_annotations_a: dict = {}
     page_annotations_b: dict = {}
 
@@ -180,7 +169,7 @@ def run_comparison(path_a, path_b, model, zoom=2.0, conf_thresh=0.25, iou_thresh
         if method == "footer":
             continue
 
-        annotations = get_fini_annotations(ba, bb, method, page_imgs_a=page_imgs_a, page_imgs_b=page_imgs_b)
+        annotations = get_fini_annotations(ba, bb, method)
         has_diff = bool(annotations)
 
         for ann in annotations:

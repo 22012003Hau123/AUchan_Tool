@@ -15,7 +15,7 @@ _CLS_DESCRIPTIONS = {
     "logo":            "brand logo (marque du produit)",
     "pack":            "pack/lot badge (ex: '2x', 'lot de 3', pack indicator)",
     "product_origin":  "origin label (ex: drapeau France, 'Produit en France')",
-    "price_per_piece": "unit price box (ex: 'soit X€/kg', 'soit X€/L')",
+    "price_per_piece": "unit price box (ex: 'Soit X€', 'la portion de X g', 'soit X€/kg', 'soit X€/L', 'soit X€/pièce')",
     "promo_fidelite":  "loyalty promo badge (ex: pastille carte fidélité, cagnotte)",
 }
 
@@ -27,10 +27,10 @@ def nvidia_headers() -> dict:
     return {"Authorization": f"Bearer {key}", "Accept": "application/json"}
 
 
-def verify_missing_elements_via_vlm(element, target_block, cls_name, page_img=None):
+def verify_missing_elements_via_vlm(element, target_block, cls_name):
     """
-    Gửi crop của 1 element + full page của bên còn thiếu.
-    Hỏi VLM: "Element này có xuất hiện trong page không?"
+    Gửi crop của 1 element + full block của bên còn thiếu.
+    Hỏi VLM: "Element này có xuất hiện trong block không?"
     YES → YOLO miss → True (skip annotation)
     NO  → lệch thực → False (ghi annotation)
     Lỗi → None (skip annotation)
@@ -40,7 +40,7 @@ def verify_missing_elements_via_vlm(element, target_block, cls_name, page_img=No
     prompt = (
         f"Tu es un expert en contrôle qualité de tracts publicitaires supermarché.\n\n"
         f"Ci-dessous tu vois 1 élément de type « {cls_desc} » détecté dans un bloc produit.\n\n"
-        f"Question : Est-ce que cet élément (ou un élément similaire) est présent quelque part dans l'image de la page ci-dessous ? "
+        f"Question : Est-ce que cet élément est présent dans l'image du bloc ci-dessous ? "
         f"Il peut se trouver à une position différente ou chevaucher la photo produit.\n\n"
         f"Réponds UNIQUEMENT par YES (présent) ou NO (absent)."
     )
@@ -54,12 +54,10 @@ def verify_missing_elements_via_vlm(element, target_block, cls_name, page_img=No
             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
         ]
 
-    target_img = page_img if page_img is not None else target_block.get("crop")
-    b64_target = encode_image_base64(target_img)
+    b64_target = encode_image_base64(target_block.get("crop"))
     if b64_target:
-        img_label = "Page complète à vérifier :" if page_img is not None else "Image du bloc à vérifier :"
         content += [
-            {"type": "text", "text": img_label},
+            {"type": "text", "text": "Image du bloc à vérifier :"},
             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_target}"}},
         ]
 
@@ -70,7 +68,7 @@ def verify_missing_elements_via_vlm(element, target_block, cls_name, page_img=No
         "temperature": 0.0,
     }
 
-    logger.info("[VLM-VERIFY] class='%s' | 1 crop + %s", cls_name, "full page" if page_img is not None else "block crop")
+    logger.info("[VLM-VERIFY] class='%s' | 1 crop + 1 full block", cls_name)
 
     try:
         resp = requests.post(NVIDIA_API_URL, headers=nvidia_headers(), json=payload, timeout=45)
