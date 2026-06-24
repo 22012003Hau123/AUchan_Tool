@@ -71,7 +71,7 @@ def format_block_for_json(block):
     }
 
 
-def get_fini_annotations(ba, bb, match_method):
+def get_fini_annotations(ba, bb, match_method, page_imgs_a=None, page_imgs_b=None):
     raw_name_log = (ba.get("text") or ba.get("block_full_text") or "?")[:50]
     logger.info("[ANNOT-ENTRY] product='%s' | match_method='%s'", raw_name_log, match_method)
 
@@ -154,10 +154,11 @@ def get_fini_annotations(ba, bb, match_method):
         )
 
         if cls_name in _VLM_VERIFY_CLASSES:
-            # Gọi VLM từng element riêng — crop của bên NHIỀU + full block của bên ÍT
+            # Gọi VLM từng element riêng — crop của bên NHIỀU + full page của bên ÍT
             if cnt_a > cnt_b:
+                page_img_b = page_imgs_b.get(bb["page_idx"]) if page_imgs_b else None
                 for el in al_a[cnt_b:]:
-                    vlm_result = verify_missing_elements_via_vlm(el, bb, cls_name)
+                    vlm_result = verify_missing_elements_via_vlm(el, bb, cls_name, page_img=page_img_b)
                     if vlm_result is False:
                         logger.info("[SUB-CHECK] class='%s' → lệch thực → annotation đỏ", cls_name)
                         annotations.append({"type": "delete", "xyxy": el["xyxy"],
@@ -172,8 +173,9 @@ def get_fini_annotations(ba, bb, match_method):
                 x1_b, y1_b, x2_b, y2_b = ba["xyxy"]
                 indicator_y = y2_b - 5
                 insert_idx = 0
+                page_img_a = page_imgs_a.get(ba["page_idx"]) if page_imgs_a else None
                 for el in al_b[cnt_a:]:
-                    vlm_result = verify_missing_elements_via_vlm(el, ba, cls_name)
+                    vlm_result = verify_missing_elements_via_vlm(el, ba, cls_name, page_img=page_img_a)
                     if vlm_result is False:
                         logger.info("[SUB-CHECK] class='%s' → lệch thực → annotation cam", cls_name)
                         annotations.append({
