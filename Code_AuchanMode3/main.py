@@ -36,10 +36,10 @@ templates = Jinja2Templates(directory="templates")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Prefer ONNX model (CPU-compatible, no PyTorch version issues)
+# Prefer .pt (GPU local), fallback to .onnx (CPU server)
 _pt_path   = os.path.join(BASE_DIR, "models", "best_DOCLAYOUT_23_6.pt")
 _onnx_path = os.path.join(BASE_DIR, "models", "best_DOCLAYOUT_23_6.onnx")
-MODEL_PATH = _onnx_path if os.path.exists(_onnx_path) else _pt_path
+MODEL_PATH = _pt_path if os.path.exists(_pt_path) else _onnx_path
 logger.info("Loading model from %s", MODEL_PATH)
 
 if MODEL_PATH.endswith(".onnx"):
