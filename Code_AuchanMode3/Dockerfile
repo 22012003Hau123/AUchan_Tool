@@ -7,6 +7,12 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+# Install CPU-only torch first to avoid downloading 1GB+ CUDA libraries
+RUN pip install --no-cache-dir \
+    torch==2.4.1+cpu \
+    torchvision==0.19.1+cpu \
+    --index-url https://download.pytorch.org/whl/cpu
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
