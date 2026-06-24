@@ -5,6 +5,23 @@ import cv2
 import fitz
 import numpy as np
 
+# doclayout_yolo 0.0.4 + PyTorch >= 2.6 returns dict from YOLOv10 head instead of tensor.
+# Patch non_max_suppression to handle dict predictions transparently.
+try:
+    import doclayout_yolo.utils.ops as _dly_ops
+    _orig_nms = _dly_ops.non_max_suppression
+
+    def _patched_nms(prediction, *args, **kwargs):
+        if isinstance(prediction, dict):
+            prediction = prediction.get("one2one", next(iter(prediction.values())))
+            if isinstance(prediction, (list, tuple)):
+                prediction = prediction[-1]
+        return _orig_nms(prediction, *args, **kwargs)
+
+    _dly_ops.non_max_suppression = _patched_nms
+except Exception:
+    pass
+
 from .pdf_utils import get_images_in_block, get_reconstructed_block_image
 from .text_utils import (
     ALLOWED_PRICE_KEYWORDS,

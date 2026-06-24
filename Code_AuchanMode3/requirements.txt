@@ -9,6 +9,8 @@ numpy
 Pillow
 opencv-python-headless
 doclayout-yolo==0.0.4
+dill
+huggingface_hub
 rapidfuzz
 scipy
 requests
