@@ -12,7 +12,7 @@ NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 _VLM_VERIFY_CLASSES = ("pack", "logo", "product_origin", "price_per_piece", "promo_fidelite")
 
 _CLS_DESCRIPTIONS = {
-    "logo":            "brand logo (marque du produit)",
+    "logo":            "logo or badge visible in the product block (ex: 'MON JOUR W!', brand logo, loyalty badge, promotional sticker)",
     "pack":            "pack/lot badge (ex: '2x', 'lot de 3', pack indicator)",
     "product_origin":  "origin label (ex: drapeau France, 'Produit en France')",
     "price_per_piece": "unit price box (ex: 'Soit X€', 'la portion de X g', 'soit X€/kg', 'soit X€/L', 'soit X€/pièce')",
