@@ -70,19 +70,21 @@ def verify_missing_elements_via_vlm(element, target_block, cls_name):
 
     logger.info("[VLM-VERIFY] class='%s' | 1 crop + 1 full block", cls_name)
 
-    try:
-        resp = requests.post(NVIDIA_API_URL, headers=nvidia_headers(), json=payload, timeout=45)
-        if resp.status_code == 200:
-            raw_ans = resp.json()["choices"][0]["message"]["content"].strip()
-            verdict = "YES" in raw_ans.upper()
-            logger.info(
-                "[VLM-VERIFY] class='%s' → '%s' → %s",
-                cls_name, raw_ans[:40],
-                "YOLO miss → bỏ qua" if verdict else "lệch thực → annotation",
-            )
-            return verdict
-        logger.warning("[VLM-VERIFY] API error %d → skip: %s", resp.status_code, resp.text[:200])
-        return None
-    except Exception as exc:
-        logger.warning("[VLM-VERIFY] Exception → skip: %s", exc)
-        return None
+    for attempt in range(3):
+        try:
+            resp = requests.post(NVIDIA_API_URL, headers=nvidia_headers(), json=payload, timeout=90)
+            if resp.status_code == 200:
+                raw_ans = resp.json()["choices"][0]["message"]["content"].strip()
+                verdict = "YES" in raw_ans.upper()
+                logger.info(
+                    "[VLM-VERIFY] class='%s' → '%s' → %s",
+                    cls_name, raw_ans[:40],
+                    "YOLO miss → bỏ qua" if verdict else "lệch thực → annotation",
+                )
+                return verdict
+            logger.warning("[VLM-VERIFY] API error %d → skip: %s", resp.status_code, resp.text[:200])
+            return None
+        except Exception as exc:
+            logger.warning("[VLM-VERIFY] attempt %d/3 exception: %s", attempt + 1, exc)
+            if attempt == 2:
+                return None
