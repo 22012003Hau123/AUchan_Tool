@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 
 import requests
 
@@ -82,9 +83,15 @@ def verify_missing_elements_via_vlm(element, target_block, cls_name):
                     "YOLO miss → bỏ qua" if verdict else "lệch thực → annotation",
                 )
                 return verdict
+            if resp.status_code == 429:
+                wait = 10 * (attempt + 1)
+                logger.warning("[VLM-VERIFY] 429 rate limit → retry sau %ds (attempt %d/3)", wait, attempt + 1)
+                time.sleep(wait)
+                continue
             logger.warning("[VLM-VERIFY] API error %d → skip: %s", resp.status_code, resp.text[:200])
             return None
         except Exception as exc:
             logger.warning("[VLM-VERIFY] attempt %d/3 exception: %s", attempt + 1, exc)
             if attempt == 2:
                 return None
+    return None
