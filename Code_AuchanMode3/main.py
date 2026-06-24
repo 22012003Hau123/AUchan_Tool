@@ -45,6 +45,16 @@ elif "doclayout" in MODEL_PATH.lower():
 else:
     model = UltraYOLO(MODEL_PATH, task='detect')
 
+# PyTorch 2.6+ CPU: YOLOv10 end2end=True returns dict of raw feature maps → NMS crash.
+# Force end2end=False to use standard decode+NMS tensor path.
+try:
+    detect_head = model.model.model[-1]
+    if hasattr(detect_head, "end2end") and detect_head.end2end:
+        detect_head.end2end = False
+        logger.info("Set detect_head.end2end=False for CPU/PyTorch 2.6+ compatibility")
+except Exception as e:
+    logger.warning("Could not patch detect_head.end2end: %s", e)
+
 logger.info("Model loaded. Classes: %s", getattr(model, 'names', 'N/A'))
 
 # ── Constants ─────────────────────────────────────────────────────────────────
