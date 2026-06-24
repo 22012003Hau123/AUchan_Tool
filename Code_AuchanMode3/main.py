@@ -35,25 +35,21 @@ templates = Jinja2Templates(directory="templates")
 # ── Model loading ─────────────────────────────────────────────────────────────
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "models", "best_DOCLAYOUT_23_6.pt")
+
+# Prefer ONNX model (CPU-compatible, no PyTorch version issues)
+_pt_path   = os.path.join(BASE_DIR, "models", "best_DOCLAYOUT_23_6.pt")
+_onnx_path = os.path.join(BASE_DIR, "models", "best_DOCLAYOUT_23_6.onnx")
+MODEL_PATH = _onnx_path if os.path.exists(_onnx_path) else _pt_path
 logger.info("Loading model from %s", MODEL_PATH)
 
-if "rt_detr" in MODEL_PATH.lower() or "rtdetr" in MODEL_PATH.lower():
+if MODEL_PATH.endswith(".onnx"):
+    model = UltraYOLO(MODEL_PATH, task='detect')
+elif "rt_detr" in MODEL_PATH.lower() or "rtdetr" in MODEL_PATH.lower():
     model = RTDETR(MODEL_PATH)
 elif "doclayout" in MODEL_PATH.lower():
     model = DocYOLO(MODEL_PATH, task='detect')
 else:
     model = UltraYOLO(MODEL_PATH, task='detect')
-
-# PyTorch 2.6+ CPU: YOLOv10 end2end=True returns dict of raw feature maps → NMS crash.
-# Force end2end=False to use standard decode+NMS tensor path.
-try:
-    detect_head = model.model.model[-1]
-    if hasattr(detect_head, "end2end") and detect_head.end2end:
-        detect_head.end2end = False
-        logger.info("Set detect_head.end2end=False for CPU/PyTorch 2.6+ compatibility")
-except Exception as e:
-    logger.warning("Could not patch detect_head.end2end: %s", e)
 
 logger.info("Model loaded. Classes: %s", getattr(model, 'names', 'N/A'))
 

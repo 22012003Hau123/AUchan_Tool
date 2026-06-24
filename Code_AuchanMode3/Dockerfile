@@ -7,9 +7,6 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Pin PyTorch 2.4.1 CPU — doclayout_yolo 0.0.4 inference breaks on PyTorch >= 2.6 CPU
-RUN pip install --no-cache-dir torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
