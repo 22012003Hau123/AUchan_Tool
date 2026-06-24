@@ -33,29 +33,28 @@ const I18N = {
         step2Title: 'Chọn PDF B (Produit Fini)',
         uploadBHint: 'Kéo thả file PDF B (có thể nhiều file)',
         // Step 3
-        step3Title: 'Chạy So sánh',
-        aiModelLabel: 'Chọn AI Model:',
-        btnRunPipeline: 'Chạy Toàn Bộ Workflow (Step 4→5→6→7)',
+        step3Title: 'Chạy So sánh YOLO',
+        btnRunYolo: 'So sánh thực thể (YOLO)',
         // Progress
         processing: 'Đang xử lý...',
         // Results
-        resultsTitle: 'Kết quả',
-        metricBbox: 'Bbox',
-        metricMatched: 'Matched',
-        metricCompared: 'So sánh',
-        metricHighlight: 'Highlight',
-        downloadBtn: 'Tải PDF',
-        previewBtn: 'Xem PDF',
+        resultsTitle: 'Kết quả so sánh thực thể',
+        metricMatched: 'Cặp matched',
+        metricDiff: 'Có sai khác',
+        metricUnmatched: 'Brief chưa match',
+        metricExtraFinal: 'Final dư',
+        labelMissing: '❌ Thiếu trong Final',
+        labelExtra: '➕ Thừa trong Final',
+        labelMatch: '✅ Khớp',
+        labelNoPI: '(fallback: full block)',
+        downloadBtn: 'Tải JSON',
         success: 'Thành công',
         failed: 'Thất bại',
-        noMatch: 'Không trùng ID',
-        noIframeSupport: 'Trình duyệt không hỗ trợ xem PDF trực tiếp. Bạn có thể',
-        // Messages
-        step1Done: 'Step 1 hoàn thành: {0} bbox',
-        step23Done: 'Step 2&3 hoàn thành: {0} ID, {1} renamed',
         uploadFirst: 'Vui lòng chọn file trước',
         modelNotFound: 'Không tìm thấy model YOLO',
         selectedFiles: 'Đã chọn {0} file:',
+        noResults: 'Không có kết quả',
+        unmatchedFinal: 'Block Final chưa match',
     },
     en: {
         appTitle: 'PDF Comparison Tool',
@@ -80,26 +79,26 @@ const I18N = {
         cancelBtn: 'Cancel',
         step2Title: 'Select PDF B (Produit Fini)',
         uploadBHint: 'Drag & drop PDF B files (multiple allowed)',
-        step3Title: 'Run Comparison',
-        aiModelLabel: 'Choose AI Model:',
-        btnRunPipeline: 'Run Full Workflow (Step 4→5→6→7)',
+        step3Title: 'Run YOLO Comparison',
+        btnRunYolo: 'Compare Entities (YOLO)',
         processing: 'Processing...',
-        resultsTitle: 'Results',
-        metricBbox: 'Bbox',
-        metricMatched: 'Matched',
-        metricCompared: 'Compared',
-        metricHighlight: 'Highlights',
-        downloadBtn: 'Download PDF',
-        previewBtn: 'View PDF',
+        resultsTitle: 'Entity Comparison Results',
+        metricMatched: 'Matched pairs',
+        metricDiff: 'With diff',
+        metricUnmatched: 'Unmatched brief',
+        metricExtraFinal: 'Extra in final',
+        labelMissing: '❌ Missing in Final',
+        labelExtra: '➕ Extra in Final',
+        labelMatch: '✅ Matching',
+        labelNoPI: '(fallback: full block)',
+        downloadBtn: 'Download JSON',
         success: 'Success',
         failed: 'Failed',
-        noMatch: 'No ID match',
-        noIframeSupport: 'Browser does not support inline PDFs. You can',
-        step1Done: 'Step 1 done: {0} bbox',
-        step23Done: 'Step 2&3 done: {0} IDs, {1} renamed',
         uploadFirst: 'Please select a file first',
         modelNotFound: 'YOLO model not found',
         selectedFiles: 'Selected {0} file(s):',
+        noResults: 'No results',
+        unmatchedFinal: 'Unmatched Final blocks',
     },
     fr: {
         appTitle: 'Outil de Comparaison PDF',
@@ -124,25 +123,26 @@ const I18N = {
         cancelBtn: 'Annuler',
         step2Title: 'Sélectionner PDF B (Produit Fini)',
         uploadBHint: 'Glisser-déposer les PDF B (multiples autorisés)',
-        step3Title: 'Lancer la Comparaison',
-        aiModelLabel: 'Choisir le modèle IA :',
-        btnRunPipeline: 'Lancer le Workflow Complet (Étapes 4→5→6→7)',
+        step3Title: 'Comparaison YOLO',
+        btnRunYolo: 'Comparer les entités (YOLO)',
         processing: 'Traitement en cours...',
-        resultsTitle: 'Résultats',
-        metricBbox: 'Bbox',
-        metricMatched: 'Correspondances',
-        metricCompared: 'Comparaisons',
-        metricHighlight: 'Surlignés',
-        downloadBtn: 'Télécharger PDF',
-        previewBtn: 'Voir PDF',
+        resultsTitle: 'Résultats de comparaison',
+        metricMatched: 'Paires matchées',
+        metricDiff: 'Avec différences',
+        metricUnmatched: 'Brief sans match',
+        metricExtraFinal: 'Extra dans Final',
+        labelMissing: '❌ Absent dans Final',
+        labelExtra: '➕ En trop dans Final',
+        labelMatch: '✅ Correspondance',
+        labelNoPI: '(repli: bloc entier)',
+        downloadBtn: 'Télécharger JSON',
         success: 'Succès',
         failed: 'Échoué',
-        noMatch: 'Pas de correspondance',
-        step1Done: 'Étape 1 terminée : {0} bbox',
-        step23Done: 'Étapes 2&3 terminées : {0} ID, {1} renommés',
         uploadFirst: 'Veuillez d\'abord sélectionner un fichier',
         modelNotFound: 'Modèle YOLO introuvable',
         selectedFiles: '{0} fichier(s) sélectionné(s) :',
+        noResults: 'Aucun résultat',
+        unmatchedFinal: 'Blocs Final sans correspondance',
     },
 };
 
@@ -275,24 +275,11 @@ function renderApp() {
                 <div class="card" id="card-step3" style="margin-top:20px;">
                     <div class="card-title">
                         <span class="step-badge">3</span>
-                        <i data-lucide="cog"></i>
+                        <i data-lucide="scan-search"></i>
                         <span>${t('step3Title')}</span>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label"><i data-lucide="cpu"></i> ${t('aiModelLabel')}</label>
-                        <div class="radio-group">
-                            <div class="radio-option">
-                                <input type="radio" name="aiModel" id="aiOpenAI" value="OpenAI GPT" checked>
-                                <label for="aiOpenAI">GPT-4.1</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" name="aiModel" id="aiGemini" value="Google Gemini">
-                                <label for="aiGemini">Gemini 2.5</label>
-                            </div>
-                        </div>
-                    </div>
                     <button class="btn btn-primary btn-full" id="btn-run-pipeline" disabled>
-                        <i data-lucide="play"></i> ${t('btnRunPipeline')}
+                        <i data-lucide="play"></i> ${t('btnRunYolo')}
                     </button>
                 </div>
             </div>
@@ -407,10 +394,10 @@ function bindEvents() {
         });
     }
 
-    // Run pipeline
+    // Run YOLO compare
     const btnRun = $('#btn-run-pipeline');
     if (btnRun) {
-        btnRun.addEventListener('click', runPipeline);
+        btnRun.addEventListener('click', runYoloCompare);
     }
 }
 
@@ -716,9 +703,9 @@ function renderPdfBList() {
 
 
 // ============================================================
-//  Pipeline Execution
+//  YOLO Compare Execution
 // ============================================================
-async function runPipeline() {
+async function runYoloCompare() {
     if (state.pdfBFiles.length === 0 || state.running) return;
     if (!state.pdfAName && !state.pdfAFile) return;
 
@@ -730,18 +717,19 @@ async function runPipeline() {
 
     const progressCard = $('#card-progress');
     if (progressCard) progressCard.classList.remove('hidden');
-
-    const progressSection = $('#pipeline-progress');
-    if (progressSection) progressSection.classList.remove('hidden');
-    
     $('#progress-log').innerHTML = '';
     updateProgress(0, t('processing'));
 
     try {
-        // 1) Handle PDF A if not yet uploaded/processed
+        // 1) Upload PDF A if not yet done
         if (!state.pdfAReady && state.pdfAFile) {
-            appendLog('Starting PDF A preparation...');
-            await handlePdfAUpload(); 
+            appendLog('Uploading PDF A...');
+            const fd = new FormData();
+            fd.append('file', state.pdfAFile);
+            const res = await api('POST', 'upload-pdf-a', fd, false);
+            state.sessionId = res.session_id;
+            state.pdfAName = res.pdf_name;
+            state.pdfAReady = true;
         }
 
         // 2) Upload PDF B files
@@ -750,45 +738,41 @@ async function runPipeline() {
         uploadFd.append('session_id', state.sessionId);
         state.pdfBFiles.forEach(f => uploadFd.append('files', f));
         await api('POST', 'upload-pdf-b', uploadFd, false);
+        updateProgress(10, 'PDFs uploaded, starting YOLO analysis...');
 
-        // 3) Start SSE listener for final steps
+        // 3) Listen SSE for progress
         const sseUrl = `/api/stream-progress/${state.sessionId}`;
         const eventSource = new EventSource(sseUrl);
-
         eventSource.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
                 appendLog(data.detail, data.status);
                 updateProgress(data.progress, data.detail);
-
                 if (data.step === 'complete') {
                     eventSource.close();
-                    showResults(data.data?.results || []);
+                    // data.data is the full result from run_yolo_comparison
+                    renderYoloResults(data.data?.results || []);
                     state.running = false;
                     btn.disabled = false;
-                    btn.textContent = t('btnRunPipeline');
+                    btn.innerHTML = `<i data-lucide="play"></i> ${t('btnRunYolo')}`;
+                    if (window.lucide) lucide.createIcons();
                 }
-            } catch (e) { /* ignore parse errors */ }
+            } catch (e) { /* ignore */ }
         };
+        eventSource.onerror = () => eventSource.close();
 
-        eventSource.onerror = () => {
-            eventSource.close();
-        };
-
-        // 4) Trigger comparison pipeline (Step 4-7)
-        const aiModel = document.querySelector('input[name="aiModel"]:checked')?.value || 'OpenAI GPT';
-        appendLog(`Starting comparison using ${aiModel}...`);
-        await api('POST', 'run-pipeline', {
+        // 4) Trigger YOLO compare
+        appendLog('Running 3-model YOLO detection on both PDFs...');
+        await api('POST', 'run-yolo-compare', {
             session_id: state.sessionId,
             pdf_a_name: state.pdfAName,
-            ai_model: aiModel,
         });
 
     } catch (err) {
         showAlert($('#card-step3'), 'error', err.message);
         state.running = false;
         btn.disabled = false;
-        btn.innerHTML = `<i data-lucide="play"></i> ${t('btnRunPipeline')}`;
+        btn.innerHTML = `<i data-lucide="scan-search"></i> ${t('btnRunYolo')}`;
         if (window.lucide) lucide.createIcons();
     }
 }
@@ -813,88 +797,160 @@ function appendLog(msg, status) {
 }
 
 // ============================================================
-//  Results
+//  Render YOLO Comparison Results
 // ============================================================
-function showResults(results) {
+function renderYoloResults(resultsArray) {
     const card = $('#card-results');
     if (card) card.classList.remove('hidden');
 
-    const progressCard = $('#card-progress');
-    // We can keep progress card visible or hide it. Let's keep it for logs.
-
     const container = $('#results-container');
-    if (!results || results.length === 0) {
-        container.innerHTML = `<div class="alert alert-warning">No results</div>`;
+    if (!resultsArray || resultsArray.length === 0) {
+        container.innerHTML = `<div class="alert alert-warning">${t('noResults')}</div>`;
         return;
     }
 
-    container.innerHTML = results.map(r => {
-        if (r.status === 'success') {
-            const fileId = r.output_file.replace(/[^a-zA-Z0-9]/g, '_');
-            return `
-                <div class="result-card">
-                    <div class="result-header">
-                        <div class="result-title">
-                            <i data-lucide="file-check-2"></i> ${r.file_name}
-                        </div>
-                        <span class="status-chip chip-success"><i data-lucide="check-circle"></i> ${t('success')}</span>
-                    </div>
-                    <div class="metrics-grid">
-                        <div class="metric-card">
-                            <div class="metric-value">${r.step4?.step1 || 0}</div>
-                            <div class="metric-label">${t('metricBbox')}</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">${r.step5?.matched || 0}</div>
-                            <div class="metric-label">${t('metricMatched')}</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">${r.step6?.comparisons || 0}</div>
-                            <div class="metric-label">${t('metricCompared')}</div>
-                        </div>
-                        <div class="metric-card ${r.step7?.highlighted === 0 ? 'metric-warning' : ''}">
-                            <div class="metric-value">${r.step7?.highlighted || 0}</div>
-                            <div class="metric-label">${t('metricHighlight')}</div>
-                        </div>
-                    </div>
-                    <div class="btn-group">
-                        <a class="btn btn-primary btn-sm" href="/api/download/${state.sessionId}/${encodeURIComponent(r.output_file)}" download>
-                            <i data-lucide="download"></i> ${t('downloadBtn')}
-                        </a>
-                    </div>
-                </div>
-                <div class="pdf-preview" id="preview-${fileId}">
-                    <iframe src="/api/view/${state.sessionId}/${encodeURIComponent(r.output_file)}">
-                        <p>${t('noIframeSupport')} <a href="/api/download/${state.sessionId}/${encodeURIComponent(r.output_file)}">${t('downloadBtn')}</a></p>
-                    </iframe>
-                </div>
-            `;
-        } else {
-            const chipClass = r.status === 'no_match' ? 'chip-warning' : 'chip-error';
-            const icon = r.status === 'no_match' ? 'alert-circle' : 'x-octagon';
-            const label = r.status === 'no_match' ? t('noMatch') : (r.error || t('failed'));
-            return `
-                <div class="result-card">
-                    <div class="result-header">
-                        <div class="result-title"><i data-lucide="file-warning"></i> ${r.file_name}</div>
-                        <span class="status-chip ${chipClass}"><i data-lucide="${icon}"></i> ${label}</span>
-                    </div>
-                </div>
-            `;
+    let html = '';
+    for (const item of resultsArray) {
+        if (item.error) {
+            html += `<div class="result-card"><div class="alert alert-error">${item.file}: ${item.error}</div></div>`;
+            continue;
         }
-    }).join('');
+        const r = item.result;
 
+        // Summary metrics
+        html += `
+        <div class="result-card">
+            <div class="result-header">
+                <div class="result-title"><i data-lucide="layers"></i>
+                    ${r.brief_pdf} <span style="opacity:.5; margin:0 6px;">vs</span> ${r.final_pdf}
+                </div>
+                <span class="status-chip ${r.pairs_with_difference > 0 ? 'chip-warning' : 'chip-success'}">
+                    ${r.pairs_with_difference > 0 ? r.pairs_with_difference + ' diff' : '✓ OK'}
+                </span>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card"><div class="metric-value">${r.matched_pairs}</div><div class="metric-label">${t('metricMatched')}</div></div>
+                <div class="metric-card ${r.pairs_with_difference > 0 ? 'metric-warning' : ''}"><div class="metric-value">${r.pairs_with_difference}</div><div class="metric-label">${t('metricDiff')}</div></div>
+                <div class="metric-card" style="opacity:.55" title="Bình thường — Brief có thể có block mà Final không cần"><div class="metric-value">${r.brief_blocks_not_in_final ?? 0}</div><div class="metric-label">Brief chỉ có</div></div>
+                <div class="metric-card" style="opacity:.55" title="Final có thêm block không có trong Brief"><div class="metric-value">${r.final_blocks_not_in_brief ?? 0}</div><div class="metric-label">Final thêm</div></div>
+            </div>`;
+
+        // Per-pair breakdown
+        if (r.pairs && r.pairs.length > 0) {
+            html += `<div style="margin-top:16px;">`;
+            for (const pair of r.pairs) {
+                const hasDiff = pair.has_difference;
+                const borderColor = hasDiff ? '#f59e0b' : '#22c55e';
+                const usedPIBrief = pair.brief_used_product_inf ? '' : ` <small style="opacity:.5">${t('labelNoPI')}</small>`;
+
+                // Build crop image URLs
+                function cropUrl(cropPath) {
+                    if (!cropPath) return null;
+                    const parts = cropPath.replace(/\\/g, '/').split('/');
+                    const fname = parts.pop();
+                    const folder = parts.pop();
+                    return `/api/yolo-preview/${state.sessionId}/${folder}/${fname}`;
+                }
+                const briefCrop = cropUrl(pair.brief_crop_path);
+                const finalCrop = cropUrl(pair.final_crop_path);
+
+                html += `
+                <div style="border-left: 3px solid ${borderColor}; padding: 10px 14px; margin-bottom:10px; background: rgba(255,255,255,0.03); border-radius: 6px;">
+                    <div style="font-size:0.78rem; opacity:.55; margin-bottom:4px;">
+                        Brief p${pair.brief_page} → Final p${pair.final_page}
+                        &nbsp;<span style="opacity:.5;">match: ${(pair.match_score * 100).toFixed(0)}%</span>
+                    </div>
+                    <div style="font-size:0.7rem; opacity:.4; margin-bottom:8px; font-style:italic; white-space:pre-wrap;">
+                        📝 Brief key: "${escHtml((pair.brief_match_text||'').replace(/\n/g,' ').slice(0,80))}"<br>
+                        📝 Final key: "${escHtml((pair.final_match_text||'').replace(/\n/g,' ').slice(0,80))}"
+                    </div>`;
+
+
+                // Side-by-side crop images
+                if (briefCrop || finalCrop) {
+                    html += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">`;
+                    html += `<div style="text-align:center;">
+                        <div style="font-size:0.7rem; opacity:.45; margin-bottom:3px;">Brief</div>
+                        ${briefCrop ? `<img src="${briefCrop}" loading="lazy" style="width:100%; border-radius:5px; border:1px solid rgba(255,255,255,0.1);" alt="Brief block">` : '<div style="opacity:.3; font-size:.75rem;">no crop</div>'}
+                    </div>`;
+                    html += `<div style="text-align:center;">
+                        <div style="font-size:0.7rem; opacity:.45; margin-bottom:3px;">Final</div>
+                        ${finalCrop ? `<img src="${finalCrop}" loading="lazy" style="width:100%; border-radius:5px; border:1px solid rgba(255,255,255,0.1);" alt="Final block">` : '<div style="opacity:.3; font-size:.75rem;">no crop</div>'}
+                    </div>`;
+                    html += `</div>`;
+                }
+
+                // Entity diff text
+                if (pair.delta) {
+                    if (pair.delta.missing_in_final.length > 0)
+                        html += `<div style="color:#f87171; font-size:0.8rem;">${t('labelMissing')}: ${pair.delta.missing_in_final.join(', ')}</div>`;
+                    if (pair.delta.extra_in_final.length > 0)
+                        html += `<div style="color:#fb923c; font-size:0.8rem;">${t('labelExtra')}: ${pair.delta.extra_in_final.join(', ')}</div>`;
+                    if (pair.delta.matching.length > 0)
+                        html += `<div style="color:#86efac; font-size:0.8rem;">${t('labelMatch')}: ${pair.delta.matching.join(', ')}</div>`;
+                }
+                html += `</div>`;
+            }
+            html += `</div>`;
+        }
+
+        // Unmatched final blocks (reference only)
+        if (r.unmatched_final_blocks && r.unmatched_final_blocks.length > 0) {
+            html += `<div style="margin-top:12px; font-size:0.8rem; opacity:.6">${t('unmatchedFinal')}:`;
+            for (const ub of r.unmatched_final_blocks) {
+                html += `<div style="margin-left:12px;">p${ub.page} — ${escHtml(ub.match_preview)} [${Object.keys(ub.entities).join(', ')}]</div>`;
+            }
+            html += `</div>`;
+        }
+
+        // ── YOLO Preview Images ───────────────────────────────────────────
+        const hasPreviews = (r.brief_previews?.length > 0) || (r.final_previews?.length > 0);
+        if (hasPreviews) {
+            html += `
+            <div style="margin-top:20px;">
+                <div style="font-size:0.78rem; opacity:.5; letter-spacing:.05em; margin-bottom:10px; text-transform:uppercase;">
+                    🖼 YOLO Detection Preview
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                    <div>
+                        <div style="font-size:0.75rem; opacity:.55; margin-bottom:6px; text-align:center;">📄 Brief</div>
+                        ${(r.brief_previews || []).map(p => {
+                            const parts = p.replace(/\\/g,'/').split('/');
+                            const fname = parts.pop();
+                            const folder = parts.pop();
+                            return `<img src="/api/yolo-preview/${state.sessionId}/${folder}/${fname}"
+                                style="width:100%; border-radius:6px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.1);"
+                                loading="lazy" alt="Brief preview">`;
+                        }).join('')}
+                    </div>
+                    <div>
+                        <div style="font-size:0.75rem; opacity:.55; margin-bottom:6px; text-align:center;">📄 Final</div>
+                        ${(r.final_previews || []).map(p => {
+                            const parts = p.replace(/\\/g,'/').split('/');
+                            const fname = parts.pop();
+                            const folder = parts.pop();
+                            return `<img src="/api/yolo-preview/${state.sessionId}/${folder}/${fname}"
+                                style="width:100%; border-radius:6px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.1);"
+                                loading="lazy" alt="Final preview">`;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        html += `</div>`; // end result-card
+    }
+
+    container.innerHTML = html;
     if (window.lucide) lucide.createIcons();
-
-    // Preview buttons
-    $$('.preview-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const previewId = btn.dataset.fileId;
-            const preview = document.getElementById(previewId);
-            if (preview) preview.classList.toggle('hidden');
-        });
-    });
 }
+
+function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Keep old showResults for backward compat (not called anymore)
+function showResults(results) { renderYoloResults(results); }
 
 // ============================================================
 //  Delete Dialog

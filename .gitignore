@@ -1,6 +1,19 @@
 # AI Models (Large files)
 models/
 *.pt
+*.pth
+*.onnx
+
+# Cache and outputs
+assembla_cache.pkl
+_pdf_a_cache/
+_mode1_3_outputs/
+output_liteparse/
+output_opendataloader/
+static/temp/
+static/uploads/
+scratch/
+segment-anything-2/
 
 # Data and Workspaces
 sessions/
@@ -9,6 +22,7 @@ pdfs_a/
 bbox/
 id/
 runs/
+temp_test_images/
 
 # Environment and Secrets
 .env
@@ -21,7 +35,14 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.pkl
 
 # OS files
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
+
+# Misc
+=0.4.0
+=1.6.0
+=10.0.0

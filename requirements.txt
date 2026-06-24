@@ -14,3 +14,7 @@ python-dotenv
 opencv-python-headless
 requests
 easyocr
+scipy
+llama-parse
+doclayout-yolo
+huggingface-hub

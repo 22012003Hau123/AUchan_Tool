@@ -1,0 +1,14 @@
+python-dotenv
+fastapi
+uvicorn
+python-multipart
+jinja2
+ultralytics
+PyMuPDF
+numpy
+Pillow
+opencv-python-headless
+doclayout-yolo
+rapidfuzz
+scipy
+requests

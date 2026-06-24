@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auchan Pipeline Comparator</title>
+    <!-- Modern Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css?v=2.5">
+</head>
+<body>
+    <!-- Top Navbar -->
+    <header class="top-nav">
+        <div class="nav-left">
+            <span class="logo-icon">🔍</span>
+            <span class="logo-title">Auchan Pipeline Comparator</span>
+        </div>
+        <div class="nav-right">
+            <a href="#" class="nav-link">Docs</a>
+            <a href="#" class="nav-link">Feedback</a>
+        </div>
+    </header>
+
+    <!-- Main Split Layout -->
+    <main class="main-layout">
+        
+        <!-- Left Panel: Workspace (Upload & Results viewer) -->
+        <div class="left-panel">
+            
+            <!-- Upload Toolbar -->
+            <div class="toolbar" id="upload-toolbar">
+                <div class="toolbar-title">Workspace</div>
+                <div class="toolbar-actions">
+                    <button type="button" class="btn-outline" id="btn-clear-all">Reset All</button>
+                    <button type="button" class="btn-outline" id="btn-new-compare" style="display: none;">🔄 New Compare</button>
+                </div>
+            </div>
+
+            <div class="left-content-area">
+                <!-- Upload Section (Visible initially) -->
+                <section class="upload-section" id="upload-section">
+                    <div class="dual-upload-container">
+                        <!-- Fini Column -->
+                        <div class="upload-column">
+                            <div class="compact-drop-zone" id="drop-fini" style="width: 100%;">
+                                <input type="file" id="file-fini" accept="application/pdf" multiple hidden>
+                                <div class="drop-zone-content">
+                                    <div class="upload-icon-wrapper">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                    </div>
+                                    <h4>Upload PDF Fini</h4>
+                                    <p class="drop-hint" id="hint-fini">Chọn hoặc kéo thả các file Fini</p>
+                                </div>
+                                <ul class="file-ul modern-file-list" id="list-fini"></ul>
+                            </div>
+                            
+                            <!-- Fini Server Files -->
+                            <div class="server-files-box" style="margin-top: 0.5rem;">
+                                <div class="server-files-header">
+                                    <span class="server-files-title">Fini</span>
+                                </div>
+                                <ul class="server-file-ul" id="server-list-fini"></ul>
+                            </div>
+                        </div>
+
+                        <!-- Assembla Column -->
+                        <div class="upload-column">
+                            <div class="compact-drop-zone" id="drop-assembla" style="width: 100%;">
+                                <input type="file" id="file-assembla" accept="application/pdf" multiple hidden>
+                                <div class="drop-zone-content">
+                                    <div class="upload-icon-wrapper">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                    </div>
+                                    <h4>Upload PDF Assembla</h4>
+                                    <p class="drop-hint" id="hint-assembla">Chọn hoặc kéo thả các file Assembla</p>
+                                </div>
+                                <ul class="file-ul modern-file-list" id="list-assembla"></ul>
+                            </div>
+                            
+                            <!-- Assembla Server Files -->
+                            <div class="server-files-box" style="margin-top: 0.5rem;">
+                                <div class="server-files-header">
+                                    <span class="server-files-title">Assembla</span>
+                                    <div class="server-files-actions" style="display: flex; gap: 4px; align-items: center;">
+                                        <button type="button" class="btn-outline btn-sm" id="btn-refresh-server-files" style="padding: 2px 6px; font-size: 0.75rem;">🔄 Làm mới</button>
+                                    </div>
+                                </div>
+                                <ul class="server-file-ul" id="server-list-assembla"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Processing State -->
+                <div class="processing-section hidden" id="processing-section">
+                    <div class="modern-loader"></div>
+                    <p class="processing-text">Analyzing documents...</p>
+                </div>
+
+                <!-- Results Viewer (Match Cards) -->
+                <section class="results-section hidden" id="results-section">
+                    <div class="results-view-header">
+                        <div class="view-toggles">
+                            <button type="button" class="view-toggle-btn active" data-target="matches-container">Match Cards</button>
+                            <button type="button" class="view-toggle-btn" data-target="pdf-results-preview">Full PDF</button>
+                        </div>
+                    </div>
+                    
+                    <div class="pdf-results-preview hidden" id="pdf-results-preview">
+                        <div class="single-catalog-container">
+                            <div class="catalog-viewer-panel">
+                                <div class="catalog-controls">
+                                    <button class="btn-outline btn-sm" id="catalog-prev-btn">Trang trước</button>
+                                    <span id="catalog-page-info">Trang 1</span>
+                                    <button class="btn-outline btn-sm" id="catalog-next-btn">Trang sau</button>
+                                </div>
+                                <div class="pdf-canvas-wrapper" id="fini-canvas-wrapper">
+                                    <div class="canvas-and-overlay-container">
+                                        <canvas id="fini-canvas"></canvas>
+                                        <div class="pdf-overlay-layer" id="fini-overlay-layer"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="assembla-unmatched-sidebar" id="assembla-unmatched-sidebar">
+                                <h4 class="sidebar-title">⚠️ Thừa bên Assembla</h4>
+                                <div class="unmatched-list" id="assembla-unmatched-list">
+                                    <div class="empty-unmatched">Không có sản phẩm nào bị dư thừa.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Match Card Modal -->
+                    <div id="match-detail-modal" class="modern-modal hidden">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Chi tiết Lỗi (Match Card)</h3>
+                                <button class="btn-close-modal" id="btn-close-modal">&times;</button>
+                            </div>
+                            <div class="modal-body" id="modal-detail-body">
+                                <!-- Match card injected here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="matches-container" id="matches-container">
+                        <!-- Match cards injected via JS -->
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Right Panel: Configuration & Results Summary -->
+        <div class="right-panel">
+            
+            <!-- Tabs Header -->
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="config">History List</button>
+                <button class="tab-btn" data-tab="results" id="tab-results-btn">Results</button>
+            </div>
+
+            <!-- Tab Content: History List -->
+            <div class="tab-content active" id="tab-config">
+                
+                <div class="history-section">
+                    <div class="history-header">
+                        <h4>Recent Comparisons</h4>
+                        <button class="btn-outline btn-sm" id="btn-refresh-history">🔄 Refresh</button>
+                    </div>
+                    <div class="history-list" id="history-list-container">
+                        <div class="empty-state">No history available.</div>
+                    </div>
+                </div>
+
+                <div class="config-group" style="display: none;">
+                    <div class="config-header">
+                        <label>Parse tier (Resolution)</label>
+                        <a href="#" class="help-link">Help me choose</a>
+                    </div>
+                    
+                    <!-- Hidden select for JS compatibility -->
+                    <select id="zoom-select" hidden>
+                        <option value="1.0">1.0</option>
+                        <option value="2.0" selected>2.0</option>
+                        <option value="3.0">3.0</option>
+                    </select>
+
+                    <div class="tier-cards-container">
+                        <div class="tier-card" data-zoom="1.0">
+                            <div class="tier-name">FAST</div>
+                            <div class="tier-desc">1x Zoom</div>
+                        </div>
+                        <div class="tier-card active" data-zoom="2.0">
+                            <div class="tier-name">BALANCED</div>
+                            <div class="tier-desc">2x Zoom</div>
+                        </div>
+                        <div class="tier-card" data-zoom="3.0">
+                            <div class="tier-name">HIGH RES</div>
+                            <div class="tier-desc">3x Zoom</div>
+                        </div>
+                    </div>
+                    <p class="config-hint">Works well for most documents. Balanced tier is recommended for standard PDFs.</p>
+                </div>
+
+                <div class="config-group" style="display: none;">
+                    <div class="config-header accordion-toggle">
+                        <label>Advanced options</label>
+                        <span class="chevron">›</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="input-wrapper">
+                            <label for="openrouter-api-key">OpenRouter API Key (For AI Match)</label>
+                            <input type="password" id="openrouter-api-key" class="modern-input" placeholder="sk-or-v1-...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kept for JS compatibility but hidden -->
+                <div id="files-list-grid" class="hidden"></div>
+            </div>
+
+            <!-- Tab Content: Results Summary -->
+            <div class="tab-content" id="tab-results">
+                
+                <div class="results-stats">
+                    <div class="stat-card">
+                        <div class="stat-val text-success" id="stat-matched">0</div>
+                        <div class="stat-lbl">Matched Pairs</div>
+                    </div>
+                </div>
+
+                <!-- Match filter toggles -->
+                <div class="filter-wrapper" style="margin: -0.5rem 0 1rem 0; width: 100%;">
+                    <div class="view-toggles" id="match-filter-toggles" style="background: var(--bg-main); width: 100%;">
+                        <button type="button" class="view-toggle-btn active" data-filter="mismatches" style="flex: 1; text-align: center; padding: 0.5rem 0.25rem; font-size: 0.8rem;">Cặp lệch (Sai)</button>
+                        <button type="button" class="view-toggle-btn" data-filter="correct" style="flex: 1; text-align: center; padding: 0.5rem 0.25rem; font-size: 0.8rem;">Cặp khớp (Đúng)</button>
+                        <button type="button" class="view-toggle-btn" data-filter="all" style="flex: 1; text-align: center; padding: 0.5rem 0.25rem; font-size: 0.8rem;">Tất cả</button>
+                    </div>
+                </div>
+
+                <!-- Global Alert (Success/Error) -->
+                <div id="global-alert-badge" class="global-alert-badge hidden"></div>
+
+                <!-- Unmatched Fini -->
+                <div class="unmatched-section hidden" id="unmatched-section">
+                    <div class="unmatched-header">
+                        <h4>Only in Fini (<span id="unmatched-fini-count">0</span>)</h4>
+                    </div>
+                    <div class="unmatched-list modern-unmatched-list" id="unmatched-fini-list"></div>
+                </div>
+
+            </div>
+
+            <!-- Sticky Footer -->
+            <div class="right-panel-footer">
+                <div class="cost-estimate">
+                </div>
+                <div class="footer-actions">
+                    <button type="button" class="btn-text">Save config</button>
+                    <button type="button" class="btn-primary" id="btn-submit">
+                        <span class="btn-text">Run Parse</span>
+                        <span class="loader hidden" id="btn-loader"></span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- JS Templates -->
+    <template id="match-card-template">
+        <div class="modern-match-card">
+            <div class="match-header">
+                <h3 class="match-title">Match #<span class="match-index"></span></h3>
+                <div class="match-badges">
+                    <span class="badge badge-status"></span>
+                    <span class="badge badge-method"></span>
+                </div>
+            </div>
+            
+            <div class="match-body">
+                <!-- Fini Column -->
+                <div class="match-col">
+                    <div class="col-title">PDF Fini <span class="page-badge">Pg <span class="fini-page"></span></span></div>
+                    <div class="img-container">
+                        <img class="fini-img" src="" alt="Fini Crop">
+                    </div>
+                </div>
+
+                <div class="vs-divider">VS</div>
+
+                <!-- Assembla Column -->
+                <div class="match-col">
+                    <div class="col-title">PDF Assembla <span class="page-badge">Pg <span class="assembla-page"></span></span></div>
+                    <div class="img-container">
+                        <img class="assembla-img" src="" alt="Assembla Crop">
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-table-wrapper">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th width="20%">Property</th>
+                            <th width="40%">PDF Fini</th>
+                            <th width="40%">PDF Assembla</th>
+                        </tr>
+                    </thead>
+                    <tbody class="comparison-tbody"></tbody>
+                </table>
+            </div>
+
+            <div class="identical-section">
+                <button type="button" class="btn-toggle-identical">
+                    <span>View identical fields</span> (<span class="identical-count">0</span>)
+                </button>
+                <div class="identical-content hidden">
+                    <table class="modern-table identical-table">
+                        <tbody class="identical-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="unmatched-card-template">
+        <div class="modern-unmatched-card">
+            <div class="unmatched-card-header">
+                <span class="page-badge">Pg <span class="unmatched-page"></span></span>
+            </div>
+            <div class="img-container">
+                <img class="unmatched-img" src="" alt="Crop">
+            </div>
+            <div class="details">
+                <div class="detail-row"><span class="label">Text:</span> <span class="value unmatched-text"></span></div>
+                <div class="detail-row"><span class="label">Price:</span> <span class="value unmatched-price"></span></div>
+                <div class="detail-row"><span class="label">PDV:</span> <span class="value unmatched-pdv"></span></div>
+            </div>
+        </div>
+    </template>
+    <!-- Scripts -->
+    <script src="/static/pdfjs/build/pdf.js"></script>
+    <script>
+        // Ensure pdf.js worker is loaded
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/pdfjs/build/pdf.worker.js';
+    </script>
+    <script src="/static/app.js?v=6.0"></script>
+</body>
+</html>
