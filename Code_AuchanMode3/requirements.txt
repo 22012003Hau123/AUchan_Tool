@@ -12,6 +12,7 @@ doclayout-yolo==0.0.4
 dill
 huggingface_hub
 onnxruntime
+onnx
 rapidfuzz
 scipy
 requests
