@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_FILE = os.path.join(BASE_DIR, "assembla_cache.pkl")
-CACHE_VERSION = 40  # bumped: fix outlier font size using same-line neighbors
+CACHE_VERSION = 41  # bumped: fix block_full_text using words mode + second fallback
 
 CACHE_LOCK = threading.Lock()
 

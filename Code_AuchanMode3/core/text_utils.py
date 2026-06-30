@@ -44,9 +44,21 @@ def _flush_line(tokens, out, patterns, exact_line_patterns, newline_token):
         out.append(newline_token)
 
 
+_LIGATURE_MAP = str.maketrans({
+    'ﬀ': 'ff', 'ﬁ': 'fi', 'ﬂ': 'fl',
+    'ﬃ': 'ffi', 'ﬄ': 'ffl', 'ﬅ': 'st', 'ﬆ': 'st',
+})
+
+
+def _normalize_ligatures(s: str) -> str:
+    return s.translate(_LIGATURE_MAP)
+
+
 def strip_boilerplate(text_val, rich_text=None):
     if not text_val:
         return text_val, rich_text
+
+    text_val = _normalize_ligatures(text_val)
 
     star_pattern = r'[*✩★☆✪✫✬✭✮✯✰]'
     footnote_pattern = r'(?:\([0-9a-zA-Z]{1,3}\))+'
@@ -83,6 +95,7 @@ def strip_boilerplate(text_val, rich_text=None):
         for w in rich_text:
             w_text = w.get("text", "")
             if w_text != "\n":
+                w_text = _normalize_ligatures(w_text)
                 w_text = re.sub(star_pattern, '', w_text)
                 w_text = re.sub(footnote_pattern, '', w_text)
                 if not w_text.strip():

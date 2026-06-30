@@ -5,6 +5,8 @@ import cv2
 import fitz
 import numpy as np
 
+from .text_utils import _normalize_ligatures
+
 # doclayout_yolo 0.0.4 + PyTorch >= 2.6 returns dict from YOLOv10 head instead of tensor.
 # Patch non_max_suppression to handle dict predictions transparently.
 try:
@@ -145,7 +147,7 @@ def _extract_product_text(page, rect, exclude_subs, zoom):
     valid_keys, line_texts = [], []
     for key in sorted(lines_dict.keys()):
         line_str = " ".join(x[4] for x in sorted(lines_dict[key], key=lambda x: x[0]))
-        if re.search(r'off\s*re.*valable.*sur.*le.*moins.*cher', line_str, re.IGNORECASE):
+        if re.search(r'off\s*re.*valable.*sur.*le.*moins.*cher', _normalize_ligatures(line_str), re.IGNORECASE):
             continue
         valid_keys.append(key)
         line_texts.append(line_str)
@@ -314,8 +316,14 @@ def _extract_prices(page, price_subs, promo_subs, zoom) -> tuple:
 
 
 def _finalise_block_text(page, block_rect, text_val, promo_text, rich_text, block_full_text_raw):
+    # Use "words" mode (clips per-word, not per-block) and preserve line structure so that
+    # strip_boilerplate patterns with [^\n]* don't eat text on subsequent lines.
+    _bw = sorted(page.get_text("words", clip=block_rect), key=lambda x: (x[5], x[6], x[7]))
+    _lines: dict = {}
+    for w in _bw:
+        _lines.setdefault((w[5], w[6]), []).append(w[4])
     block_full_text = re.sub('￼', '',
-                              page.get_text("text", clip=block_rect)).strip()
+        "\n".join(" ".join(ws) for ws in _lines.values())).strip()
 
     if not text_val:
         text_val = block_full_text
@@ -326,13 +334,24 @@ def _finalise_block_text(page, block_rect, text_val, promo_text, rich_text, bloc
                 pat = r'\s+'.join(re.escape(w) for w in pl.split())
                 text_val = re.sub(pat, "", text_val, flags=re.IGNORECASE).strip()
 
-    text_val = re.sub(r'\s+', ' ', re.sub(r'\b\d{5}\b', '', text_val)).strip()
+    # Remove 5-digit PDV codes but KEEP \n so strip_boilerplate [^\n]* doesn't eat across lines.
+    text_val = re.sub(r'\b\d{5}\b', '', text_val)
     if rich_text:
         rich_text = [w for w in rich_text if not re.search(r'\b\d{5}\b', w.get("text", ""))]
 
     text_val, rich_text = strip_boilerplate(text_val, rich_text)
-    block_full_text = re.sub(r'\s+', ' ', re.sub(r'\b\d{5}\b', '', block_full_text)).strip()
-    block_full_text, _ = strip_boilerplate(block_full_text, None)
+    text_val = re.sub(r'\s+', ' ', text_val).strip()  # collapse whitespace AFTER strip
+
+    # Second fallback: strip_boilerplate may have emptied text_val (e.g. only "Off re valable"
+    # was in product_inf rect). Fall back to full block text, preserving \n through strip.
+    if not text_val.strip():
+        _bft = re.sub(r'\b\d{5}\b', '', block_full_text)
+        _bft, _ = strip_boilerplate(_bft, None)
+        text_val = re.sub(r'\s+', ' ', _bft).strip()
+
+    _bft2 = re.sub(r'\b\d{5}\b', '', block_full_text)
+    _bft2, _ = strip_boilerplate(_bft2, None)
+    block_full_text = re.sub(r'\s+', ' ', _bft2).strip()
 
     return text_val, rich_text, block_full_text
 
