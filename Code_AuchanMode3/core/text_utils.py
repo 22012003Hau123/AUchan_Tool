@@ -17,6 +17,33 @@ PRICE_STOPWORDS = {
 _EXCLUDE_FROM_PRODUCT_INF = ("price", "promo_fidelite", "logo", "price_per_piece")
 
 
+def _flush_line(tokens, out, patterns, exact_line_patterns, newline_token):
+    if not tokens:
+        if newline_token:
+            out.append(newline_token)
+        return
+    line_str = " ".join(x["text"] for x in tokens)
+    if any(re.match(p, line_str.strip()) for p in exact_line_patterns):
+        return
+    # Apply patterns to clean boilerplate from within the line
+    cleaned = line_str
+    for p in patterns:
+        cleaned = re.sub(p, '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    if not cleaned:
+        return
+    # Keep tokens that still appear in cleaned string (sequential match)
+    pos = 0
+    for tok in tokens:
+        t = tok["text"]
+        idx = cleaned.find(t, pos)
+        if idx >= 0:
+            out.append(tok)
+            pos = idx + len(t)
+    if newline_token:
+        out.append(newline_token)
+
+
 def strip_boilerplate(text_val, rich_text=None):
     if not text_val:
         return text_val, rich_text
@@ -29,7 +56,8 @@ def strip_boilerplate(text_val, rich_text=None):
     text_val = re.sub(r'\s+', ' ', text_val).strip()
 
     patterns = [
-        r'(?i)offre\s+valable\s+sur\s+le\s+moins\s+cher[^\n]*',
+        r'(?i)offre\s+valable[^\n]*',
+        r'(?i)sur\s+les?\s+(?:\w+\s+){0,3}moins\s+chers?[^\n]*',
         r'(?i)hors\s+promotions?\s+en\s+cours[^\n]*',
         r'(?i)formats\s+promo[^\n]*',
         r'(?i)ff\s+l\s+bl\s+l\s+i\s+h[^\n]*',
@@ -62,22 +90,13 @@ def strip_boilerplate(text_val, rich_text=None):
                 w["text"] = w_text
 
             if w["text"] == "\n":
-                line_str = " ".join(x["text"] for x in current_line)
-                is_boiler = (
-                    any(re.search(p, line_str, flags=re.IGNORECASE) for p in patterns)
-                    or any(re.match(p, line_str.strip()) for p in exact_line_patterns)
-                )
-                if not is_boiler:
-                    filtered_rich.extend(current_line)
-                    filtered_rich.append(w)
+                _flush_line(current_line, filtered_rich, patterns, exact_line_patterns, w)
                 current_line = []
             else:
                 current_line.append(w)
 
         if current_line:
-            line_str = " ".join(x["text"] for x in current_line)
-            if not any(re.search(p, line_str, flags=re.IGNORECASE) for p in patterns):
-                filtered_rich.extend(current_line)
+            _flush_line(current_line, filtered_rich, patterns, exact_line_patterns, None)
 
         while filtered_rich and filtered_rich[-1]["text"] == "\n":
             filtered_rich.pop()
