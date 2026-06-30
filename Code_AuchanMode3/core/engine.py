@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_FILE = os.path.join(BASE_DIR, "assembla_cache.pkl")
-CACHE_VERSION = 39  # bumped: two-pass calibration to recover true font size from CTM-scaled tokens
+CACHE_VERSION = 39  # bumped: cap outlier font sizes at 2.5x median of block
 
 CACHE_LOCK = threading.Lock()
 

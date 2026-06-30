@@ -152,54 +152,38 @@ def _extract_product_text(page, rect, exclude_subs, zoom):
 
     text_val = re.sub('￼', '', "\n".join(line_texts)).strip()
 
-    # Pass 1: collect (key, word, matched_span) — sentinel None marks line break
-    word_span_pairs = []
+    rich_text = []
     for key in valid_keys:
         for w in sorted(lines_dict[key], key=lambda x: x[0]):
             wx, wy = (w[0] + w[2]) / 2, (w[1] + w[3]) / 2
-            found_span = None
+            w_size, w_bold = 0.0, False
             for span in flat_spans:
                 sx0, sy0, sx1, sy1 = span["bbox"]
                 if sx0 - 1 <= wx <= sx1 + 1 and sy0 - 1 <= wy <= sy1 + 1:
-                    found_span = span
+                    w_size = round(span["size"], 1)
+                    flags = span.get("flags", 0)
+                    font_name = span.get("font", "").lower()
+                    w_bold = bool((flags & 16) or "bold" in font_name or "black" in font_name)
                     break
-            word_span_pairs.append((w, found_span))
-        word_span_pairs.append((None, None))  # line-break sentinel
+            rich_text.append({
+                "text": w[4], "size": w_size, "bold": w_bold,
+                "xyxy": [w[0]*zoom, w[1]*zoom, w[2]*zoom, w[3]*zoom],
+            })
+        rich_text.append({"text": "\n", "size": 0.0, "bold": False})
 
-    # Calibration: median(bbox_h / nominal) for non-CTM words in this block.
-    # PyMuPDF word bbox includes ascenders/descenders, so bbox_h ≠ font-size.
-    # For CTM-scaled text (nominal >> visual height) we back-compute the real size.
-    from statistics import median as _median
-    ratios = [
-        (w[3] - w[1]) / span["size"]
-        for w, span in word_span_pairs
-        if w is not None and span and span["size"] > 0
-        and span["size"] <= (w[3] - w[1]) * 2.5  # only include non-CTM words
-    ]
-    cal = _median(ratios) if ratios else 1.4  # 1.4 is typical for PyMuPDF word bboxes
-
-    # Pass 2: assign corrected sizes
-    rich_text = []
-    for w, span in word_span_pairs:
-        if w is None:
-            rich_text.append({"text": "\n", "size": 0.0, "bold": False})
-            continue
-        w_size, w_bold = 0.0, False
-        if span:
-            nominal = span["size"]
-            word_h = w[3] - w[1]
-            if word_h > 0 and nominal > word_h * 2.5:
-                # CTM-scaled: recover real font size via calibration factor
-                w_size = round(word_h / cal, 1)
-            else:
-                w_size = round(nominal, 1)
-            flags = span.get("flags", 0)
-            font_name = span.get("font", "").lower()
-            w_bold = bool((flags & 16) or "bold" in font_name or "black" in font_name)
-        rich_text.append({
-            "text": w[4], "size": w_size, "bold": w_bold,
-            "xyxy": [w[0]*zoom, w[1]*zoom, w[2]*zoom, w[3]*zoom],
-        })
+    # Replace size outliers: if a token is >2.5× the median, pin it to the median
+    # of normal tokens (catches CTM-scaled decorative text with inflated nominal sizes)
+    _all_sizes = [r["size"] for r in rich_text if r["size"] > 0]
+    if _all_sizes:
+        from statistics import median as _median
+        _med = _median(_all_sizes)
+        _cap = _med * 2.5
+        if any(s > _cap for s in _all_sizes):
+            _normal = [s for s in _all_sizes if s <= _cap]
+            _fill = round(_median(_normal), 1) if _normal else round(_med, 1)
+            for r in rich_text:
+                if r["size"] > _cap:
+                    r["size"] = _fill
 
     if rich_text and rich_text[-1]["text"] == "\n":
         rich_text.pop()
