@@ -157,10 +157,14 @@ def _extract_product_text(page, rect, exclude_subs, zoom):
         for w in sorted(lines_dict[key], key=lambda x: x[0]):
             wx, wy = (w[0] + w[2]) / 2, (w[1] + w[3]) / 2
             w_size, w_bold = 0.0, False
+            word_h = w[3] - w[1]  # actual rendered height in PDF coords
             for span in flat_spans:
                 sx0, sy0, sx1, sy1 = span["bbox"]
                 if sx0 - 1 <= wx <= sx1 + 1 and sy0 - 1 <= wy <= sy1 + 1:
-                    w_size = round(span["size"], 1)
+                    nominal = span["size"]
+                    # If nominal size is >2.5× the word's visual height,
+                    # the text is CTM-scaled → use visual height as effective size
+                    w_size = round(word_h if nominal > word_h * 2.5 else nominal, 1)
                     flags = span.get("flags", 0)
                     font_name = span.get("font", "").lower()
                     w_bold = bool((flags & 16) or "bold" in font_name or "black" in font_name)
