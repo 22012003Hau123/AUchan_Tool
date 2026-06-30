@@ -589,6 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const cleanGarbage = (s) => {
                             let cleaned = (s || '').toLowerCase();
                             cleaned = cleaned.replace(/\b(o|i|ff|l|bl|h)\b/g, '');
+                            cleaned = cleaned.replace(/-\s+/g, '-').replace(/\s+-/g, '-');
                             return cleaned.replace(/\s+/g, ' ').trim();
                         };
                         if (cleanGarbage(va) !== cleanGarbage(vb)) return false;
