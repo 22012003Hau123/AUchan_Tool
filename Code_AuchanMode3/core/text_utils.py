@@ -56,7 +56,7 @@ def strip_boilerplate(text_val, rich_text=None):
     text_val = re.sub(r'\s+', ' ', text_val).strip()
 
     patterns = [
-        r'(?i)offre\s+valable[^\n]*',
+        r'(?i)off\s*re\s+valable[^\n]*',
         r'(?i)sur\s+les?\s+(?:\w+\s+){0,3}moins\s+chers?[^\n]*',
         r'(?i)hors\s+promotions?\s+en\s+cours[^\n]*',
         r'(?i)formats\s+promo[^\n]*',
@@ -205,7 +205,7 @@ def clean_text_for_matching(text, is_product_inf=False) -> str:
         r"différentes variétés", r"differentes varietes", r"au choix",
         r"le 1er produit", r"le 2ème produit", r"le 2eme produit", r"le 2e produit",
         r"soit le 2ème produit", r"soit le 2eme produit", r"soit le 2e produit",
-        r"offre valable sur le moins cher",
+        r"off\s*re\s+valable\s+sur\s+le\s+moins\s+cher",
         r"cagnotte déduite\*", r"cagnotte deduite\*",
         r"les 2\s*:", r"au lieu de",
         r"vendu seul\s*(:\s*)?", r"par \d+\s*(:\s*)?",

@@ -145,7 +145,7 @@ def _extract_product_text(page, rect, exclude_subs, zoom):
     valid_keys, line_texts = [], []
     for key in sorted(lines_dict.keys()):
         line_str = " ".join(x[4] for x in sorted(lines_dict[key], key=lambda x: x[0]))
-        if re.search(r'offre.*valable.*sur.*le.*moins.*cher', line_str, re.IGNORECASE):
+        if re.search(r'off\s*re.*valable.*sur.*le.*moins.*cher', line_str, re.IGNORECASE):
             continue
         valid_keys.append(key)
         line_texts.append(line_str)
