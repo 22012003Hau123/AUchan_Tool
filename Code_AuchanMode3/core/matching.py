@@ -60,7 +60,8 @@ def match_product_blocks_global(blocks_a, blocks_b):
             if price_sim >= 0.7:
                 text_sim = max(text_sim, 0.85)
 
-            if text_sim >= 0.85:
+            if text_sim >= 0.95:
+                # Nearly identical text → accept even if numbers differ (OCR variation)
                 score_matrix[r, c] = text_sim
             elif text_sim >= 0.70 and not nums_conflict:
                 score_matrix[r, c] = text_sim

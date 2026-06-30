@@ -172,10 +172,11 @@ def compare_price_text_word_by_word(price_a, price_b) -> float:
     if not price_a or not price_b:
         return 0.0
 
-    def price_words(text):
-        return set(re.findall(r'[a-zà-ÿ]+', text.lower()))
+    def price_tokens(text):
+        # Include digits so "3€50" differs from "4€20" — prevents false matches
+        return set(re.findall(r'[a-zà-ÿ\d]+', text.lower()))
 
-    wa, wb = price_words(price_a), price_words(price_b)
+    wa, wb = price_tokens(price_a), price_tokens(price_b)
     if not wa or not wb:
         return 0.0
     return len(wa & wb) / len(wa | wb)

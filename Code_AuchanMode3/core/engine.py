@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_FILE = os.path.join(BASE_DIR, "assembla_cache.pkl")
-CACHE_VERSION = 35  # bumped: fix price_per_piece excluding product name words
+CACHE_VERSION = 36  # bumped: fix price comparison to include numbers, fix nums_conflict threshold
 
 CACHE_LOCK = threading.Lock()
 
