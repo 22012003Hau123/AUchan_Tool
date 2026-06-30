@@ -175,7 +175,11 @@ def _extract_product_text(page, rect, exclude_subs, zoom):
         rich_text.pop()
 
     sizes = [r["size"] for r in rich_text if r["size"] > 0]
-    font_size = round(max(sizes), 1) if sizes else None
+    if sizes:
+        from collections import Counter
+        font_size = round(Counter(sizes).most_common(1)[0][0], 1)
+    else:
+        font_size = None
     is_bold = any(r["bold"] for r in rich_text)
     return text_val, rich_text, font_size, is_bold
 
