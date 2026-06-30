@@ -11,7 +11,7 @@ from PIL import Image
 from rapidfuzz import fuzz
 from scipy.optimize import linear_sum_assignment
 
-from .text_utils import clean_text_for_matching, compare_price_text_word_by_word
+from .text_utils import clean_text_for_matching
 from .vlm import NVIDIA_API_URL, nvidia_headers
 
 logger = logging.getLogger(__name__)
@@ -54,10 +54,10 @@ def match_product_blocks_global(blocks_a, blocks_b):
             text_sim = (0.85 * fuzz.token_sort_ratio(ta, tb) / 100.0
                         + 0.15 * fuzz.token_set_ratio(ta, tb) / 100.0)
 
-            price_sim = compare_price_text_word_by_word(
-                blocks_a[r].get("price", ""), blocks_b[c].get("price", "")
-            )
-            if price_sim >= 0.7:
+            # Boost only if the actual price numbers are identical
+            price_nums_a = set(re.findall(r'\d+', blocks_a[r].get("price", "")))
+            price_nums_b = set(re.findall(r'\d+', blocks_b[c].get("price", "")))
+            if price_nums_a and price_nums_b and price_nums_a == price_nums_b:
                 text_sim = max(text_sim, 0.85)
 
             if text_sim >= 0.95:
